@@ -1,29 +1,48 @@
-import Button from "react-bootstrap/Button";
 import Container from "react-bootstrap/Container";
-import Form from "react-bootstrap/Form";
-import Nav from "react-bootstrap/Nav";
+import Button from "react-bootstrap/Button";
 import Navbar from "react-bootstrap/Navbar";
 import Image from "react-bootstrap/Image";
-import { useState } from "react";
-import { LinkContainer } from "react-router-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import Form from "react-bootstrap/Form";
+import Nav from "react-bootstrap/Nav";
+import IonicPenAPI from "../../IonicPenAPI";
 
-function NavBar() {
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { LinkContainer } from "react-router-bootstrap";
+import { useState } from "react";
+import { Dropdown } from "react-bootstrap";
+
+function NavBar(props) {
+  const [query, setQuery] = useState("");
+  const [showProfile, setShowProfile] = useState(false);
   let navigate = useNavigate();
-  const [value, setValue] = useState("");
-  const onInput = ({ target: { value } }) => setValue(value);
-  async function onFormSubmit(e) {
+
+  const location = useLocation();
+
+  async function performSearch(e) {
     e.preventDefault();
     try {
-      navigate(`/search?q=${value}`);
-    } catch (error) {
-      console.log(error);
+      navigate(`/search?q=${query}`);
+      if (location.pathname === "/search") {
+        navigate(0);
+      }
+    } catch (err) {
+      console.log(err);
     }
-    setValue("");
+    setQuery("");
+  }
+
+  function redirectToRandomBook() {
+    IonicPenAPI.getRandomBook()
+      .then((response) => {
+        window.location.href = "/books/info/" + response.book_id;
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }
 
   return (
-    <Navbar bg="light" expand="sm">
+    <Navbar bg="light" expand="sm" style={{ position: "sticky", top: "0" }}>
       <Container fluid>
         <Button variant="outline-*" size="sm" color="#0d6efd">
           <Link to="/">
@@ -45,40 +64,65 @@ function NavBar() {
               <Nav.Link>Home</Nav.Link>
             </LinkContainer>
 
-            <LinkContainer to="/catalog">
+            <LinkContainer to="/books">
               <Nav.Link>Catalog</Nav.Link>
             </LinkContainer>
-
-            <LinkContainer to="/logout">
-              <Nav.Link>Logout</Nav.Link>
-            </LinkContainer>
           </Nav>
-          <Form className="d-flex" onSubmit={onFormSubmit}>
+          <Form className="d-flex" onSubmit={performSearch}>
             <Form.Control
               type="text"
               placeholder="Search"
               className="me-2"
               aria-label="Search"
-              onChange={onInput}
-              value={value || ""}
+              onChange={({ target: { value } }) => setQuery(value)}
+              value={query || ""}
             />
             <p>&nbsp;&nbsp;</p>
 
-            <Button variant="success" size="sm">
+            <Button
+              variant="success"
+              size="sm"
+              onClick={() => redirectToRandomBook()}
+            >
               Pick&nbsp;For&nbsp;Me
             </Button>
 
             <p>&nbsp;&nbsp;</p>
-
-            <Button variant="outline-*" size="sm">
-              <Image
-                src="https://ionic-pen-public-assets.s3.amazonaws.com/profile.jpeg"
-                width="40"
-                height="40"
-                roundedCircle
-                border="0"
-              />
-            </Button>
+            <Dropdown
+              show={showProfile}
+              onMouseEnter={() => {
+                setShowProfile(true);
+              }}
+              onMouseLeave={() => {
+                setShowProfile(false);
+              }}
+            >
+              <Button variant="outline-*" size="sm" href="/profile">
+                <Image
+                  src="https://ionic-pen-public-assets.s3.amazonaws.com/profile.jpeg"
+                  width="40"
+                  height="40"
+                  roundedCircle
+                  border="0"
+                />
+              </Button>
+              <Dropdown.Menu
+                show={showProfile}
+                style={{ left: "-6em", top: "3em" }}
+              >
+                {props.loggedIn ? (
+                  <div>
+                    <Dropdown.Item href="/profile">Profile</Dropdown.Item>
+                    <Dropdown.Item href="/logout">Logout</Dropdown.Item>
+                  </div>
+                ) : (
+                  <div>
+                    <Dropdown.Item href="/login">Login</Dropdown.Item>
+                    <Dropdown.Item href="/signup">Sign Up</Dropdown.Item>
+                  </div>
+                )}
+              </Dropdown.Menu>
+            </Dropdown>
           </Form>
         </Navbar.Collapse>
       </Container>

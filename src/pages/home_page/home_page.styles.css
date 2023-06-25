@@ -1,0 +1,18 @@
+.carousel-container {
+    width: 90%;
+    max-height: 20%;
+    margin: auto;
+}
+.carousel-text {
+    margin-left: 18%;
+    font-family: "Libre Bonodi";
+    margin-bottom: -1%;
+}
+
+/* Media query to center text in mobile view */
+@media screen and (max-width: 768px) {
+    .carousel-text {
+        margin-right: 19%;
+        text-align: center;
+    }
+}
